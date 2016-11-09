@@ -1,15 +1,17 @@
 /*
 
-  hext: a markup language and tool for binary files
-  
+  hext: a markup language and tool for describing binary files
+
   Copyright 2016 Nicholas Humfrey
 
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
 #include <ctype.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "hext.h"
 
@@ -34,7 +36,7 @@ int read_hext(FILE* input, uint8_t *buffer, size_t bufferlen)
 
     while (pos < bufferlen) {
         int chr = fgetc(input);
-        
+
         if (chr == EOF) {
             break;
 
@@ -62,8 +64,8 @@ int read_hext(FILE* input, uint8_t *buffer, size_t bufferlen)
 
         } else if (chr == '"') {
             while (pos < bufferlen) {
-               int chr2 = fgetc(input);
-               if (chr2 == EOF || chr2 == '"') {
+                int chr2 = fgetc(input);
+                if (chr2 == EOF || chr2 == '"') {
                     break;
                 } else {
                     buffer[pos++] = chr2;
@@ -86,7 +88,7 @@ int read_hext_file(const char* filename, uint8_t *buffer, size_t bufferlen)
         perror("Failed to open file");
         return -1;
     }
-    
+
     int len = read_hext(file, buffer, bufferlen);
     fclose(file);
     return len;
@@ -94,22 +96,90 @@ int read_hext_file(const char* filename, uint8_t *buffer, size_t bufferlen)
 
 
 #ifdef HEXT_TOOL
-int main(int argc, const char *argv[])
+
+enum {
+    MODE_BINARY,
+    MODE_C,
+    MODE_HEXSTREAM
+};
+
+void usage()
+{
+    fprintf(stderr, "Usage: hext [options] file...\n");
+    fprintf(stderr, "Options\n");
+    fprintf(stderr, "  -b  Binary output format (default)\n");
+    fprintf(stderr, "  -c  C data structure format\n");
+    fprintf(stderr, "  -x  Hexadecimal text stream\n");
+    exit(-1);
+}
+
+int main(int argc, char **argv)
 {
     uint8_t buffer[1024];
-    
-    if (argc != 2) {
-        fprintf(stderr, "Usage: hext <filename>\n");
-        return -1;
+    int len, opt, mode = 0;
+
+    // Parse Switches
+    while ((opt = getopt(argc, argv, "bcx")) != -1) {
+        switch (opt) {
+        case 'b':
+            mode = MODE_BINARY;
+            break;
+        case 'c':
+            mode = MODE_C;
+            break;
+        case 'x':
+            mode = MODE_HEXSTREAM;
+            break;
+        default:
+            usage();
+            break;
+        }
     }
-    
-    int len = read_hext_file(argv[1], buffer, sizeof(buffer));
+
+    argc -= optind;
+    argv += optind;
+
+    if (argc < 1) {
+        fprintf(stderr, "No filename given\n");
+        usage();
+    }
+
+
+    // Now read in the file
+    len = read_hext_file(argv[0], buffer, sizeof(buffer));
     if (len < 0) {
         return -1;
     }
-    
-    fwrite(buffer, 1, len, stdout);
-    
+
+    if (mode == MODE_BINARY) {
+        fwrite(buffer, 1, len, stdout);
+    } else if (mode == MODE_HEXSTREAM) {
+        int i;
+        for (i=0; i<len; i++) {
+            fprintf(stdout, "%2.2x", buffer[i]);
+        }
+    } else if (mode == MODE_C) {
+        int i;
+        fprintf(stdout, "uint8_t buffer[] = {\n");
+        for (i=0; i<len; i++) {
+            //printf("%d\n", i%16);
+            if (i % 8 == 0) {
+                fprintf(stdout, "    ");
+            }
+            fprintf(stdout, "0x%2.2x", buffer[i]);
+            if (i == len - 1) {
+                fprintf(stdout, "\n");
+            } else {
+                fprintf(stdout, ", ");
+                if (i % 8 == 7) {
+                    fprintf(stdout, "\n");
+                }
+            }
+        }
+        fprintf(stdout, "};\n");
+    }
+
     return 0;
 }
+
 #endif
