@@ -12,6 +12,7 @@ The following characters are supported:
 | Whitespace    | Ignored                                                  |
 | Colon or Dash | Ignored - useful for improving readability               |
 | ""            | A string of ASCII characters                             |
+| .             | A NULL byte                                              |
 | #             | The start of a comment - the rest of the line is ignored |
 
 

@@ -72,6 +72,9 @@ int read_hext(FILE* input, uint8_t *buffer, size_t bufferlen)
                 }
             }
 
+        } else if (chr == '.') {
+            buffer[pos++] = '\0';
+
         } else {
             fprintf(stderr, "Error: unrecognised character in input: '%c'\n", chr);
             break;
@@ -162,7 +165,6 @@ int main(int argc, char **argv)
         int i;
         fprintf(stdout, "uint8_t buffer[] = {\n");
         for (i=0; i<len; i++) {
-            //printf("%d\n", i%16);
             if (i % 8 == 0) {
                 fprintf(stdout, "    ");
             }
