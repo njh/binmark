@@ -1,7 +1,8 @@
 hext
 ====
 
-hext is a markup language and tool for describing binary files.
+hext is a markup language and tool for describing binary files, that is easier to
+read and write than a continuous stream of hexadecimal characters.
 
 
 The following characters are supported:
@@ -19,34 +20,32 @@ The following characters are supported:
 Example
 -------
 
+Given the following sample input file, which is reasonably easy read:
+
+    30             # Packet Type 3: Publish
+    11             # Remaining length (17 bytes)
+    0004           # Topic name length
+    "test"         # Topic name
+    "hello world"  # Payload
+
 The default is to output as a binary stream - visualised here using the hexdump command:
 
-    ./hext -b tests/ipv6_udp_packet.hext | hexdump -C
-    00000000  00 04 a3 2c 2b b9 a4 5e  60 da 58 9d 86 dd 60 03  |...,+..^`.X...`.|
-    00000010  b1 b7 00 0d 11 40 20 01  08 b0 ff d5 00 03 a6 5e  |.....@ ........^|
-    00000020  60 ff fe da 58 9d 20 01  08 b0 ff d5 00 03 02 04  |`...X. .........|
-    00000030  a3 ff fe 2c 2b b9 fa 06  03 f0 00 0d 5e 37 48 65  |...,+.......^7He|
-    00000040  6c 6c 6f 20 57 6f 72 6c  64                       |llo World|
-    00000049
+    ./hext -b tests/mqtt_publish.hext | hexdump -C
+    00000000  30 11 00 04 74 65 73 74  68 65 6c 6c 6f 20 77 6f  |0...testhello wo|
+    00000010  72 6c 64                                          |rld|
+    00000013
 
 It is also possible to output as C data structure:
 
-    ./hext -c tests/ipv6_udp_packet.hext
+    ./hext -c tests/mqtt_publish.hext
     uint8_t buffer[] = {
-        0x00, 0x04, 0xa3, 0x2c, 0x2b, 0xb9, 0xa4, 0x5e, 
-        0x60, 0xda, 0x58, 0x9d, 0x86, 0xdd, 0x60, 0x03, 
-        0xb1, 0xb7, 0x00, 0x0d, 0x11, 0x40, 0x20, 0x01, 
-        0x08, 0xb0, 0xff, 0xd5, 0x00, 0x03, 0xa6, 0x5e, 
-        0x60, 0xff, 0xfe, 0xda, 0x58, 0x9d, 0x20, 0x01, 
-        0x08, 0xb0, 0xff, 0xd5, 0x00, 0x03, 0x02, 0x04, 
-        0xa3, 0xff, 0xfe, 0x2c, 0x2b, 0xb9, 0xfa, 0x06, 
-        0x03, 0xf0, 0x00, 0x0d, 0x5e, 0x37, 0x48, 0x65, 
-        0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 
-        0x64
+        0x30, 0x11, 0x00, 0x04, 0x74, 0x65, 0x73, 0x74, 
+        0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 
+        0x72, 0x6c, 0x64
     };
 
 Or as a stream of hexadecimal text:
 
-    ./hext -x tests/ipv6_udp_packet.hext
-    0004a32c2bb9a45e60da589d86dd6003b1b7000d1140200108b0ffd50003a65e60fffeda589d200108b0ffd500030204a3fffe2c2bb9fa0603f0000d5e3748656c6c6f20576f726c64
+    ./hext -x tests/mqtt_publish.hext
+    301100047465737468656c6c6f20776f726c64
 
