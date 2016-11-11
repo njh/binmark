@@ -72,8 +72,6 @@ int read_hext(FILE* input, uint8_t *buffer, size_t bufferlen)
                 }
             }
 
-        } else if (chr == '.') {
-            buffer[pos++] = '\0';
 
         } else {
             fprintf(stderr, "Error: unrecognised character in input: '%c'\n", chr);
