@@ -1,3 +1,5 @@
+PREFIX:=/usr/local
+
 all: hext
 
 hext: hext.c hext.h
@@ -6,8 +8,12 @@ hext: hext.c hext.h
 test: hext
 	@./run-tests.sh
 
+install: hext
+	install -d $(PREFIX)/bin
+	install -c hext $(PREFIX)/bin
+
 clean:
 	rm -f hext
 	rm -f tests/*.result
 
-.PHONY: all test clean
+.PHONY: all test install clean
