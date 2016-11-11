@@ -30,6 +30,27 @@ static int8_t ascii_to_hex(char c)
     }
 }
 
+// Based on: https://en.wikipedia.org/wiki/Escape_sequences_in_C
+static int escape_to_hex(int c)
+{
+    switch(c) {
+        case '0':  return 0x00;
+        case 'a':  return 0x07;
+        case 'b':  return 0x08;
+        case 'f':  return 0x0C;
+        case 'n':  return 0x0A;
+        case 'r':  return 0x0D;
+        case 't':  return 0x09;
+        case 'v':  return 0x0B;
+        case '\\': return 0x5C;
+        case '\'': return 0x27;
+        case '"':  return 0x22;
+        case '?':  return 0x3F;
+        default:
+            return -1;
+    }
+}
+
 int read_hext(FILE* input, uint8_t *buffer, size_t bufferlen)
 {
     int pos = 0;
@@ -67,8 +88,31 @@ int read_hext(FILE* input, uint8_t *buffer, size_t bufferlen)
                 int chr2 = fgetc(input);
                 if (chr2 == EOF || chr2 == '"') {
                     break;
+                } else if (chr2 == '\\') {
+                    int chr3 = fgetc(input);
+                    int escaped = escape_to_hex(chr3);
+                    if (escaped < 0) {
+                        fprintf(stderr, "Error: invalid escape sequence '%c'\n", chr3);
+                        break;
+                    } else {
+                        buffer[pos++] = escaped;
+                    }
                 } else {
                     buffer[pos++] = chr2;
+                }
+            }
+
+        } else if (chr == '\\') {
+            int chr2 = fgetc(input);
+            if (chr2 == EOF) {
+                break;
+            } else {
+                int escaped = escape_to_hex(chr2);
+                if (escaped < 0) {
+                    fprintf(stderr, "Error: invalid escape sequence '%c'\n", chr2);
+                    break;
+                } else {
+                    buffer[pos++] = escaped;
                 }
             }
 

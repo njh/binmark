@@ -14,6 +14,7 @@ The following characters are supported:
 | Colon or Dash | Ignored - useful for improving readability               |
 | ""            | A string of ASCII characters                             |
 | #             | The start of a comment - the rest of the line is ignored |
+| \             | Escape sequences (\0 \a \b \f \n \r \t \v)               |
 
 
 Example

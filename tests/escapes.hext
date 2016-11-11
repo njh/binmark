@@ -1,0 +1,14 @@
+# See https://en.wikipedia.org/wiki/Escape_sequences_in_C
+
+\0	# 0x00 Null
+\a	# 0x07 Alert
+\b  # 0x08 Backspace
+\f  # 0x0C Formfeed
+\n  # 0x0A Newline (Line Feed)
+\r  # 0x0D Carriage Return
+\t  # 0x09 Horizontal Tab
+\v  # 0x0B Vertical Tab
+\\  # 0x5C Backslash
+\'  # 0x27 Single quotation mark
+\"  # 0x22 Double quotation mark
+\?  # 0x3F Question mark
