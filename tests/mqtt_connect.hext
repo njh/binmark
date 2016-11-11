@@ -1,0 +1,11 @@
+# Result of running: mosquitto_pub -t "test" -m "test" -i "client1234" -V mqttv311
+
+10            # Message Type (1 = Connect)
+16            # Message Length
+0004          # Protocol Name Length
+"MQTT"        # Protocol Name
+04            # Protocol Version number
+02            # Connect Flags
+003c          # Keep Alive (60 seconds)
+000a          # Client ID length
+"client1234"  # Client ID string
