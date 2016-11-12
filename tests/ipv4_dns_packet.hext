@@ -1,0 +1,39 @@
+06:22:8f:5c:15:28  # Ethernet Destination
+82:11:6f:f0:39:44  # Ethernet Source
+0800               # EtherType (IPv4)
+
+45                 # IPv4 header and header length
+00                 # DSCP
+0048               # Total Length
+416f               # Identification
+0000               # Flags
+3c                 # Time to Live
+11                 # Protocol: UDP
+e1ad               # Header Checksum
+08080808           # Source IP
+0a6c410d           # Destination IP
+
+0035               # UDP Source Port
+cd7b               # UDP Destination Port
+0034               # UDP Length
+4e7b               # UDP Checksum
+
+87ef               # DNS Transaction ID
+8180               # DNS Flags
+0001               # DNS Question Count
+0001               # DNS Answer RRs
+0000               # DNS Authority RRs
+0000               # DNS Additional RRs
+
+06 "google"        # DNS Query: "google.com"
+03 "com"
+00
+0001               # DNS Type Type: A
+0001               # DNS Query Class: IN
+
+c00c               # Pointer to DNS query
+0001               # DNS Type Type: A
+0001               # DNS Query Class: IN
+0000012b           # DNS Time to Live: 299
+0004               # DNS Data Length
+d83ad22e           # DNS Response Address
