@@ -202,24 +202,23 @@ static int write_hex(void *cookie, const char *ptr, int len)
     return count;
 }
 
-static int write_c_block(void *cookie, const char *ptr, int len)
+static void print_c_block(FILE *output, const uint8_t *buffer, int buffer_len)
 {
-    FILE* output = (FILE*)cookie;
-    static int total = 0; // FIXME: better way of getting position in input stream?
-    size_t count = 0;
+    fprintf(output, "uint8_t buffer[] = {");
 
-    for (int i=0; i<len; i++) {
-        if (total != 0) {
-            count += fprintf(output, ", ");
+    for (int i=0; i<buffer_len; i++) {
+        if (i % 8 == 0) {
+            fprintf(output, "\n    ");
         }
-        if (total % 8 == 0) {
-            count += fprintf(output, "\n    ");
+        fprintf(output, "0x%2.2x", buffer[i]);
+        if (i == buffer_len - 1) {
+            fprintf(output, "\n");
+        } else {
+            fprintf(output, ", ");
         }
-        count += fprintf(output, "0x%2.2x", (const unsigned char)ptr[i]);
-        total++;
     }
 
-    return count;
+    fprintf(output, "};\n");
 }
 
 static void usage()
@@ -271,11 +270,11 @@ int main(int argc, char **argv)
         fclose(output);
 
     } else if (mode == MODE_C) {
-        FILE* output = fwopen(stdout, write_c_block);
-        fprintf(stdout, "uint8_t buffer[] = {");
-        hext_filename_to_stream(argv[0], output);
-        fclose(output);
-        fprintf(stdout, "\n};\n");
+        uint8_t buffer[4096];
+        int len = hext_filename_to_buffer(argv[0], buffer, sizeof(buffer));
+        if (len >= 0) {
+            print_c_block(stdout, buffer, len);
+        }
     }
 
     return 0;
