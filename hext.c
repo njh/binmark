@@ -80,7 +80,8 @@ int hext_stream_to_stream(FILE* input, FILE* output)
                 break;
             }
 
-            count += fputc((ascii_to_hex(chr) << 4) + ascii_to_hex(chr2), output);
+            fputc((ascii_to_hex(chr) << 4) + ascii_to_hex(chr2), output);
+            count++;
 
         } else if (chr == '"') {
             while (!feof(input)) {
@@ -94,10 +95,12 @@ int hext_stream_to_stream(FILE* input, FILE* output)
                         fprintf(stderr, "Error: invalid escape sequence '%c'\n", chr3);
                         break;
                     } else {
-                        count += fputc(escaped, output);
+                        fputc(escaped, output);
+                        count++;
                     }
                 } else {
-                    count += fputc(chr2, output);
+                    fputc(chr2, output);
+                    count++;
                 }
             }
 
@@ -111,7 +114,8 @@ int hext_stream_to_stream(FILE* input, FILE* output)
                     fprintf(stderr, "Error: invalid escape sequence '%c'\n", chr2);
                     break;
                 } else {
-                    count += fputc(escaped, output);
+                    fputc(escaped, output);
+                    count++;
                 }
             }
 
