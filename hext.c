@@ -17,7 +17,7 @@
 
 
 
-static int8_t ascii_to_hex(char c)
+static int ascii_to_hex(char c)
 {
     c |= 0x20;
 
@@ -51,11 +51,11 @@ static int escape_to_hex(int c)
     }
 }
 
-int read_hext(FILE* input, uint8_t *buffer, size_t bufferlen)
+int hext_stream_to_stream(FILE* input, FILE* output)
 {
-    int pos = 0;
+    size_t count = 0;
 
-    while (pos < bufferlen) {
+    while (!feof(input) && !feof(output)) {
         int chr = fgetc(input);
 
         if (chr == EOF) {
@@ -67,24 +67,23 @@ int read_hext(FILE* input, uint8_t *buffer, size_t bufferlen)
 
         } else if (chr == '#') {
             // Ignore the rest of the line
-            while (pos < bufferlen) {
+            while (!feof(input)) {
                 int chr2 = fgetc(input);
-                if (chr2 == EOF || chr2 == '\n' || chr2 == '\r')
+                if (chr2 == '\n' || chr2 == '\r')
                     break;
             }
 
         } else if (isxdigit(chr)) {
             int chr2 = fgetc(input);
-            if (chr2 == EOF) {
-                break;
-            } else if (!isxdigit(chr2)) {
+            if (!isxdigit(chr2)) {
                 fprintf(stderr, "Error: got non-hex digit after hex digit: '%c'\n", chr2);
                 break;
             }
-            buffer[pos++] = (ascii_to_hex(chr) << 4) + ascii_to_hex(chr2);
+
+            count += fputc((ascii_to_hex(chr) << 4) + ascii_to_hex(chr2), output);
 
         } else if (chr == '"') {
-            while (pos < bufferlen) {
+            while (!feof(input)) {
                 int chr2 = fgetc(input);
                 if (chr2 == EOF || chr2 == '"') {
                     break;
@@ -95,10 +94,10 @@ int read_hext(FILE* input, uint8_t *buffer, size_t bufferlen)
                         fprintf(stderr, "Error: invalid escape sequence '%c'\n", chr3);
                         break;
                     } else {
-                        buffer[pos++] = escaped;
+                        count += fputc(escaped, output);
                     }
                 } else {
-                    buffer[pos++] = chr2;
+                    count += fputc(chr2, output);
                 }
             }
 
@@ -112,10 +111,9 @@ int read_hext(FILE* input, uint8_t *buffer, size_t bufferlen)
                     fprintf(stderr, "Error: invalid escape sequence '%c'\n", chr2);
                     break;
                 } else {
-                    buffer[pos++] = escaped;
+                    count += fputc(escaped, output);
                 }
             }
-
 
         } else {
             fprintf(stderr, "Error: unrecognised character in input: '%c'\n", chr);
@@ -123,19 +121,20 @@ int read_hext(FILE* input, uint8_t *buffer, size_t bufferlen)
         }
     }
 
-    return pos;
+    return count;
 }
 
-int read_hext_file(const char* filename, uint8_t *buffer, size_t bufferlen)
+int hext_filename_to_stream(const char* filename, FILE* output)
 {
-    FILE *file = fopen(filename, "rb");
-    if (!file) {
-        perror("Failed to open file");
+    FILE *input = fopen(filename, "rb");
+    if (!input) {
+        perror("Failed to open input file");
         return -1;
     }
 
-    int len = read_hext(file, buffer, bufferlen);
-    fclose(file);
+    int len = hext_stream_to_stream(input, output);
+
+    fclose(input);
     return len;
 }
 
@@ -148,7 +147,44 @@ enum {
     MODE_HEXSTREAM
 };
 
-void usage()
+static int write_hex(void *cookie, const char *ptr, int len)
+{
+    FILE* output = (FILE*)cookie;
+    size_t count = 0;
+
+    for (int i=0; i<len; i++) {
+        int result = fprintf(output, "%2.2x", (const unsigned char)ptr[i]);
+        if (result < 0) {
+            return result;
+        } else {
+            count += result;
+        }
+    }
+
+    return count;
+}
+
+static int write_c_block(void *cookie, const char *ptr, int len)
+{
+    FILE* output = (FILE*)cookie;
+    static int total = 0; // FIXME: better way of getting position in input stream?
+    size_t count = 0;
+
+    for (int i=0; i<len; i++) {
+        if (total != 0) {
+            count += fprintf(output, ", ");
+        }
+        if (total % 8 == 0) {
+            count += fprintf(output, "\n    ");
+        }
+        count += fprintf(output, "0x%2.2x", (const unsigned char)ptr[i]);
+        total++;
+    }
+
+    return count;
+}
+
+static void usage()
 {
     fprintf(stderr, "Usage: hext [options] file...\n");
     fprintf(stderr, "Options\n");
@@ -160,8 +196,7 @@ void usage()
 
 int main(int argc, char **argv)
 {
-    uint8_t buffer[1024];
-    int len, opt, mode = 0;
+    int opt, mode = 0;
 
     // Parse Switches
     while ((opt = getopt(argc, argv, "bcx")) != -1) {
@@ -189,38 +224,20 @@ int main(int argc, char **argv)
         usage();
     }
 
-
-    // Now read in the file
-    len = read_hext_file(argv[0], buffer, sizeof(buffer));
-    if (len < 0) {
-        return -1;
-    }
-
     if (mode == MODE_BINARY) {
-        fwrite(buffer, 1, len, stdout);
+        hext_filename_to_stream(argv[0], stdout);
+
     } else if (mode == MODE_HEXSTREAM) {
-        int i;
-        for (i=0; i<len; i++) {
-            fprintf(stdout, "%2.2x", buffer[i]);
-        }
+        FILE* output = fwopen(stdout, write_hex);
+        hext_filename_to_stream(argv[0], output);
+        fclose(output);
+
     } else if (mode == MODE_C) {
-        int i;
-        fprintf(stdout, "uint8_t buffer[] = {\n");
-        for (i=0; i<len; i++) {
-            if (i % 8 == 0) {
-                fprintf(stdout, "    ");
-            }
-            fprintf(stdout, "0x%2.2x", buffer[i]);
-            if (i == len - 1) {
-                fprintf(stdout, "\n");
-            } else {
-                fprintf(stdout, ", ");
-                if (i % 8 == 7) {
-                    fprintf(stdout, "\n");
-                }
-            }
-        }
-        fprintf(stdout, "};\n");
+        FILE* output = fwopen(stdout, write_c_block);
+        fprintf(stdout, "uint8_t buffer[] = {");
+        hext_filename_to_stream(argv[0], output);
+        fclose(output);
+        fprintf(stdout, "\n};\n");
     }
 
     return 0;

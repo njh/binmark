@@ -2,7 +2,7 @@
 #ifndef HEXT_H
 #define HEXT_H
 
-int read_hext(FILE* input, uint8_t *buffer, size_t bufferlen);
-int read_hext_file(const char* filename, uint8_t *buffer, size_t bufferlen);
+int hext_stream_to_stream(FILE* input, FILE* output);
+int hext_filename_to_stream(const char* filename, FILE* output);
 
 #endif
