@@ -142,6 +142,40 @@ int hext_filename_to_stream(const char* filename, FILE* output)
     return len;
 }
 
+struct buffer_write_struct {
+    uint8_t *buffer;
+    size_t buffer_used;
+    size_t buffer_len;
+};
+
+static int write_buffer(void *cookie, const char *ptr, int len)
+{
+    struct buffer_write_struct *bws = (struct buffer_write_struct*)cookie;
+    
+    if (bws->buffer_used + len < bws->buffer_len) {
+        for(int i=0; i<len; i++) {
+            bws->buffer[bws->buffer_used] = ptr[i];
+            bws->buffer_used++;
+        }
+        return len;
+    } else {
+        // Buffer isn't big enough
+        return -1;
+    }
+}
+
+int hext_filename_to_buffer(const char* filename, uint8_t *buffer, size_t buffer_len)
+{
+    struct buffer_write_struct bws = {buffer, 0, buffer_len};   
+    FILE* output = fwopen(&bws, write_buffer);
+
+    int len = hext_filename_to_stream(filename, output);
+
+    fclose(output);
+
+    return len;
+}
+
 
 #ifdef HEXT_TOOL
 
