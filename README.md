@@ -1,7 +1,7 @@
 hext
 ====
 
-hext is a markup language and tool for describing binary files, that is easier to
+_hext_ is a markup language and tool for describing binary files, that is easier to
 read and write than a continuous stream of hexadecimal characters.
 
 
@@ -48,4 +48,36 @@ Or as a stream of hexadecimal text:
 
     ./hext -x tests/mqtt_publish.hext
     301100047465737468656c6c6f20776f726c64
+
+
+But why?
+--------
+
+I created _hext_ after my test cases, when writing test cases for my Arduino IPv6 Library,
+EtherSia, started resulting in long strings of hexadecimal characters in my code. I 
+decided that these would be better in seperate external files and realised that I had the 
+freedom to decide on the file format, to make them easier to read and write.
+
+A long stream of hexadecimal is difficult to both read and write - particularly picking 
+out the different fields and sections. By adding some whitespace, punctuation and 
+comments, it is much easier.
+
+Possible uses:
+
+* Describing expected data for automated tests
+* Creating new file formats before tools to generate them exist
+* Documenting a data structure in a human readable way
+* Alternative to a using a hex editor
+
+
+Design Decisions
+----------------
+
+This was my thought process while designing _hext_:
+
+* Readable and concise to write for humans
+* Simple for a machine to parse and convert
+* Streamable - don't require input to be loaded into a buffer more parsing
+* ASCII input - try and avoid potential weird character-set problems
+* Not so complex that there wouldn't be other implementations in other languages
 
