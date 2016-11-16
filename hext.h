@@ -1,3 +1,4 @@
+#include <stdio.h>
 
 #ifndef HEXT_H
 #define HEXT_H
