@@ -1,7 +1,7 @@
 PREFIX:=/usr/local
 PACKAGE=hext
 VERSION=0.1.0
-CFLAGS+=-Wall -DVERSION=$(VERSION)
+CFLAGS+=-std=c89 -Wall -pedantic -DVERSION=$(VERSION)
 
 all: hext
 
