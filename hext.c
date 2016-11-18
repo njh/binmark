@@ -51,12 +51,12 @@ static int escape_to_hex(int c)
     }
 }
 
-int hext_stream_to_stream(FILE* input, FILE* output)
+int hext_cb_to_cb(void* input, void* output, hext_read_cb read_cb, hext_write_cb write_cb)
 {
     size_t count = 0;
 
-    while (!feof(input) && !feof(output)) {
-        int chr = fgetc(input);
+    while (1) {
+        int chr = read_cb(input);
 
         if (chr == EOF) {
             break;
@@ -67,45 +67,45 @@ int hext_stream_to_stream(FILE* input, FILE* output)
 
         } else if (chr == '#') {
             /* Ignore the rest of the line */
-            while (!feof(input)) {
-                int chr2 = fgetc(input);
-                if (chr2 == '\n' || chr2 == '\r')
+            while (1) {
+                int chr2 = read_cb(input);
+                if (chr2 == EOF || chr2 == '\n' || chr2 == '\r')
                     break;
             }
 
         } else if (isxdigit(chr)) {
-            int chr2 = fgetc(input);
+            int chr2 = read_cb(input);
             if (!isxdigit(chr2)) {
                 fprintf(stderr, "Error: got non-hex digit after hex digit: '%c'\n", chr2);
                 break;
             }
 
-            fputc((ascii_to_hex(chr) << 4) + ascii_to_hex(chr2), output);
+            write_cb((ascii_to_hex(chr) << 4) + ascii_to_hex(chr2), output);
             count++;
 
         } else if (chr == '"') {
-            while (!feof(input)) {
-                int chr2 = fgetc(input);
+            while (1) {
+                int chr2 = read_cb(input);
                 if (chr2 == EOF || chr2 == '"') {
                     break;
                 } else if (chr2 == '\\') {
-                    int chr3 = fgetc(input);
+                    int chr3 = read_cb(input);
                     int escaped = escape_to_hex(chr3);
                     if (escaped < 0) {
                         fprintf(stderr, "Error: invalid escape sequence '%c'\n", chr3);
                         break;
                     } else {
-                        fputc(escaped, output);
+                        write_cb(escaped, output);
                         count++;
                     }
                 } else {
-                    fputc(chr2, output);
+                    write_cb(chr2, output);
                     count++;
                 }
             }
 
         } else if (chr == '\\') {
-            int chr2 = fgetc(input);
+            int chr2 = read_cb(input);
             if (chr2 == EOF) {
                 break;
             } else {
@@ -114,7 +114,7 @@ int hext_stream_to_stream(FILE* input, FILE* output)
                     fprintf(stderr, "Error: invalid escape sequence '%c'\n", chr2);
                     break;
                 } else {
-                    fputc(escaped, output);
+                    write_cb(escaped, output);
                     count++;
                 }
             }
@@ -128,8 +128,19 @@ int hext_stream_to_stream(FILE* input, FILE* output)
     return count;
 }
 
-int hext_filename_to_stream(const char* filename, FILE* output)
+int hext_stream_to_stream(FILE* input, FILE* output)
 {
+    /* Explicit cast to avoid compiler warning */
+    hext_read_cb read_cb = (hext_read_cb)fgetc;
+    hext_write_cb write_cb = (hext_write_cb)fputc;
+
+    return hext_cb_to_cb(input, output, read_cb, write_cb);
+}
+
+int hext_filename_to_cb(const char* filename, void* output, hext_write_cb write_cb)
+{
+    /* Explicit cast to avoid compiler warning */
+    hext_read_cb read_cb = (hext_read_cb)fgetc;
     FILE *input = NULL;
     int len = 0;
 
@@ -139,10 +150,17 @@ int hext_filename_to_stream(const char* filename, FILE* output)
         return -1;
     }
 
-    len = hext_stream_to_stream(input, output);
+    len = hext_cb_to_cb(input, output, read_cb, write_cb);
 
     fclose(input);
     return len;
+}
+
+int hext_filename_to_stream(const char* filename, FILE* output)
+{
+    hext_write_cb write_cb = (hext_write_cb)fputc;
+
+    return hext_filename_to_cb(filename, output, write_cb);
 }
 
 struct buffer_write_struct {
@@ -151,17 +169,14 @@ struct buffer_write_struct {
     size_t buffer_len;
 };
 
-static int write_buffer(void *cookie, const char *ptr, int len)
+static int write_buffer_cb(int c, void* data)
 {
-    struct buffer_write_struct *bws = (struct buffer_write_struct*)cookie;
-    int i = 0;
+    struct buffer_write_struct *bws = (struct buffer_write_struct*)data;
 
-    if (bws->buffer_used + len < bws->buffer_len) {
-        for(i=0; i<len; i++) {
-            bws->buffer[bws->buffer_used] = ptr[i];
-            bws->buffer_used++;
-        }
-        return len;
+    if (bws->buffer_used + 1 < bws->buffer_len) {
+        bws->buffer[bws->buffer_used] = c;
+        bws->buffer_used++;
+        return c;
     } else {
         /* Buffer isn't big enough */
         return -1;
@@ -171,15 +186,13 @@ static int write_buffer(void *cookie, const char *ptr, int len)
 int hext_filename_to_buffer(const char* filename, uint8_t *buffer, size_t buffer_len)
 {
     struct buffer_write_struct bws = {NULL, 0, 0};
-    FILE* output = NULL;
+    hext_read_cb read_cb = (hext_read_cb)fgetc;
     int len = 0;
 
     bws.buffer = buffer;
     bws.buffer_len = buffer_len;
-    output = fwopen(&bws, write_buffer);
-    len = hext_filename_to_stream(filename, output);
 
-    fclose(output);
+    len = hext_filename_to_cb(filename, &bws, write_buffer_cb);
 
     return len;
 }
