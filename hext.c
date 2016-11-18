@@ -186,7 +186,6 @@ static int write_buffer_cb(int c, void* data)
 int hext_filename_to_buffer(const char* filename, uint8_t *buffer, size_t buffer_len)
 {
     struct buffer_write_struct bws = {NULL, 0, 0};
-    hext_read_cb read_cb = (hext_read_cb)fgetc;
     int len = 0;
 
     bws.buffer = buffer;
@@ -206,22 +205,14 @@ enum {
     MODE_HEXSTREAM
 };
 
-static int write_hex(void *cookie, const char *ptr, int len)
+static int write_hex(int c, void* output)
 {
-    FILE* output = (FILE*)cookie;
-    size_t count = 0;
-    int i = 0;
-
-    for (i=0; i<len; i++) {
-        int result = fprintf(output, "%2.2x", (const unsigned char)ptr[i]);
-        if (result < 0) {
-            return result;
-        } else {
-            count += result;
-        }
+    int result = fprintf(output, "%2.2x", c);
+    if (result < 0) {
+        return result;
+    } else {
+        return c;
     }
-
-    return count;
 }
 
 static void print_c_block(FILE *output, const uint8_t *buffer, int buffer_len)
@@ -289,9 +280,7 @@ int main(int argc, char **argv)
         hext_filename_to_stream(argv[0], stdout);
 
     } else if (mode == MODE_HEXSTREAM) {
-        FILE* output = fwopen(stdout, write_hex);
-        hext_filename_to_stream(argv[0], output);
-        fclose(output);
+        hext_filename_to_cb(argv[0], stdout, write_hex);
 
     } else if (mode == MODE_C) {
         uint8_t buffer[4096];
