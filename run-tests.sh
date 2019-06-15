@@ -3,7 +3,7 @@
 # Bash script to run all the test cases in the tests directory
 #
 # .hext   : the input file
-# .bin    : the expected output file (binary)
+# .expect : the expected output file (binary)
 # .result : the output of running the text locally
 #
 
@@ -15,12 +15,12 @@ for filepath in tests/*.hext
 do
   filename=${filepath##*/}
   testname=${filename%.*}
-  expectedfile="tests/$testname.bin"
+  expectedfile="tests/$testname.expect"
   resultfile="tests/$testname.result"
 
   ((totalcount++))
   echo "Testing: $testname"
-  ./hext -b $filepath > $resultfile
+  ./hext -x $filepath > $resultfile
   if [ $? -ne 0 ]; then
       echo " => Error"
       ((errorcount++))
