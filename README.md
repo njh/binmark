@@ -14,6 +14,7 @@ The following characters are supported:
 | 0-9 and a-f   | A byte as hexadecimal. Must be two characters long.      |
 | Whitespace    | Ignored                                                  |
 | Colon or Dash | Ignored - useful for improving readability               |
+| .nnn          | A 8-bit decimal integer                                  |
 | ""            | A string of ASCII characters                             |
 | #             | The start of a comment - the rest of the line is ignored |
 | \             | Escape sequences (\0 \a \b \f \n \r \t \v)               |
@@ -25,7 +26,7 @@ Example
 Given the following sample input file, which is reasonably easy read:
 
     30             # Packet Type 3: Publish
-    11             # Remaining length (17 bytes)
+    .17            # Remaining length (17 bytes)
     0004           # Topic name length
     "test"         # Topic name
     "hello world"  # Payload

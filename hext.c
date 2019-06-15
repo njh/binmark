@@ -55,9 +55,17 @@ static int escape_to_hex(int c)
 int hext_cb_to_cb(void* input, void* output, hext_read_cb read_cb, hext_write_cb write_cb)
 {
     size_t count = 0;
+    int readahead = 0;
 
     while (1) {
-        int chr = read_cb(input);
+        int chr;
+
+        if (readahead) {
+            chr = readahead;
+            readahead = 0;
+        } else {
+            chr = read_cb(input);
+        }
 
         if (chr == EOF) {
             break;
@@ -83,6 +91,32 @@ int hext_cb_to_cb(void* input, void* output, hext_read_cb read_cb, hext_write_cb
 
             write_cb((ascii_to_hex(chr) << 4) + ascii_to_hex(chr2), output);
             count++;
+
+        } else if (chr == '.') {
+            /* 8-bit Integer */
+            char chars[5];
+            int digits = 0;
+
+            while (digits < 4) {
+                int chr2 = read_cb(input);
+                if (isdigit(chr2) || chr2 == '-') {
+                    chars[digits++] = chr2;
+                } else {
+                    /* Store the extra character for later */
+                    readahead = chr2;
+                    break;
+                }
+            }
+
+            chars[digits] = '\0';
+
+            if (digits < 1 || digits > 4) {
+                fprintf(stderr, "Error: invalid integer: %s\n", chars);
+                break;
+            } else {
+                int num = atoi(chars);
+                write_cb((uint8_t)num & 0xFF, output);
+            }
 
         } else if (chr == '"') {
             while (1) {
