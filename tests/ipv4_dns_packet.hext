@@ -2,13 +2,13 @@
 82:11:6f:f0:39:44  # Ethernet Source
 0800               # EtherType (IPv4)
 
-45                 # IPv4 header and header length
+.69                # IPv4 header and header length
 00                 # DSCP
 0048               # Total Length
 416f               # Identification
 0000               # Flags
-3c                 # Time to Live
-11                 # Protocol: UDP
+.60                # Time to Live
+.17                # Protocol: UDP
 e1ad               # Header Checksum
 08080808           # Source IP
 0a6c410d           # Destination IP
@@ -25,8 +25,8 @@ cd7b               # UDP Destination Port
 0000               # DNS Authority RRs
 0000               # DNS Additional RRs
 
-06 "google"        # DNS Query: "google.com"
-03 "com"
+.6 "google"        # DNS Query: "google.com"
+.3 "com"
 00
 0001               # DNS Type Type: A
 0001               # DNS Query Class: IN

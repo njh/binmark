@@ -1,5 +1,5 @@
 30             # Packet Type 3: Publish
-11             # Remaining length (17 bytes)
+.17            # Remaining length (17 bytes)
 0004           # Topic name length
 "test"         # Topic name
 "hello world"  # Payload

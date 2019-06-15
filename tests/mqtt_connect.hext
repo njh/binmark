@@ -1,7 +1,7 @@
 # Result of running: mosquitto_pub -t "test" -m "test" -i "client1234" -V mqttv311
 
 10            # Message Type (1 = Connect)
-16            # Message Length
+.22           # Message Length in bytes
 0004          # Protocol Name Length
 "MQTT"        # Protocol Name
 04            # Protocol Version number
