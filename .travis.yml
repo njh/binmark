@@ -1,0 +1,7 @@
+dist: xenial
+sudo: false
+
+language: c
+
+script:
+  - make test

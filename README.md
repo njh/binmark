@@ -1,6 +1,8 @@
 hext
 ====
 
+[![Build Status](https://travis-ci.org/njh/hext.svg?branch=master)](https://travis-ci.org/njh/hext)
+
 _hext_ is a markup language and tool for describing binary files, that is easier to
 read and write than a continuous stream of hexadecimal characters.
 
