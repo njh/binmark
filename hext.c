@@ -208,7 +208,7 @@ enum {
 
 static int write_hex(int c, void* output)
 {
-    int result = fprintf(output, "%2.2x", c);
+    int result = fprintf(output, "%2.2x", (uint8_t)c);
     if (result < 0) {
         return result;
     } else {
