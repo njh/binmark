@@ -116,6 +116,7 @@ int hext_cb_to_cb(void* input, void* output, hext_read_cb read_cb, hext_write_cb
             } else {
                 int num = atoi(chars);
                 write_cb((uint8_t)num & 0xFF, output);
+                count++;
             }
 
         } else if (chr == '"') {
