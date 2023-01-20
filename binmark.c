@@ -1,6 +1,6 @@
 /*
 
-  hext: a markup language and tool for describing binary files
+  binmark: a markup language and tool for describing binary files
 
   Copyright 2016 Nicholas Humfrey
 
@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <getopt.h>
 
-#include "hext.h"
+#include "binmark.h"
 
 
 
@@ -52,7 +52,7 @@ static int escape_to_hex(int c)
     }
 }
 
-int hext_cb_to_cb(void* input, void* output, hext_read_cb read_cb, hext_write_cb write_cb)
+int binmark_cb_to_cb(void* input, void* output, binmark_read_cb read_cb, binmark_write_cb write_cb)
 {
     size_t count = 0;
     int readahead = 0;
@@ -164,19 +164,19 @@ int hext_cb_to_cb(void* input, void* output, hext_read_cb read_cb, hext_write_cb
     return count;
 }
 
-int hext_stream_to_stream(FILE* input, FILE* output)
+int binmark_stream_to_stream(FILE* input, FILE* output)
 {
     /* Explicit cast to avoid compiler warning */
-    hext_read_cb read_cb = (hext_read_cb)fgetc;
-    hext_write_cb write_cb = (hext_write_cb)fputc;
+    binmark_read_cb read_cb = (binmark_read_cb)fgetc;
+    binmark_write_cb write_cb = (binmark_write_cb)fputc;
 
-    return hext_cb_to_cb(input, output, read_cb, write_cb);
+    return binmark_cb_to_cb(input, output, read_cb, write_cb);
 }
 
-int hext_filename_to_cb(const char* filename, void* output, hext_write_cb write_cb)
+int binmark_filename_to_cb(const char* filename, void* output, binmark_write_cb write_cb)
 {
     /* Explicit cast to avoid compiler warning */
-    hext_read_cb read_cb = (hext_read_cb)fgetc;
+    binmark_read_cb read_cb = (binmark_read_cb)fgetc;
     FILE *input = NULL;
     int len = 0;
 
@@ -186,17 +186,17 @@ int hext_filename_to_cb(const char* filename, void* output, hext_write_cb write_
         return -1;
     }
 
-    len = hext_cb_to_cb(input, output, read_cb, write_cb);
+    len = binmark_cb_to_cb(input, output, read_cb, write_cb);
 
     fclose(input);
     return len;
 }
 
-int hext_filename_to_stream(const char* filename, FILE* output)
+int binmark_filename_to_stream(const char* filename, FILE* output)
 {
-    hext_write_cb write_cb = (hext_write_cb)fputc;
+    binmark_write_cb write_cb = (binmark_write_cb)fputc;
 
-    return hext_filename_to_cb(filename, output, write_cb);
+    return binmark_filename_to_cb(filename, output, write_cb);
 }
 
 struct buffer_write_struct {
@@ -219,7 +219,7 @@ static int write_buffer_cb(int c, void* data)
     }
 }
 
-int hext_filename_to_buffer(const char* filename, uint8_t *buffer, size_t buffer_len)
+int binmark_filename_to_buffer(const char* filename, uint8_t *buffer, size_t buffer_len)
 {
     struct buffer_write_struct bws = {NULL, 0, 0};
     int len = 0;
@@ -227,13 +227,13 @@ int hext_filename_to_buffer(const char* filename, uint8_t *buffer, size_t buffer
     bws.buffer = buffer;
     bws.buffer_len = buffer_len;
 
-    len = hext_filename_to_cb(filename, &bws, write_buffer_cb);
+    len = binmark_filename_to_cb(filename, &bws, write_buffer_cb);
 
     return len;
 }
 
 
-#ifdef HEXT_TOOL
+#ifdef BINMARK_TOOL
 
 enum {
     MODE_BINARY,
@@ -274,7 +274,7 @@ static void print_c_block(FILE *output, const uint8_t *buffer, int buffer_len)
 
 static void usage()
 {
-    fprintf(stderr, "Usage: hext [options] file...\n");
+    fprintf(stderr, "Usage: binmark [options] file...\n");
     fprintf(stderr, "Options\n");
     fprintf(stderr, "  -b  Binary output format (default)\n");
     fprintf(stderr, "  -c  C data structure format\n");
@@ -313,14 +313,14 @@ int main(int argc, char **argv)
     }
 
     if (mode == MODE_BINARY) {
-        hext_filename_to_stream(argv[0], stdout);
+        binmark_filename_to_stream(argv[0], stdout);
 
     } else if (mode == MODE_HEXSTREAM) {
-        hext_filename_to_cb(argv[0], stdout, write_hex);
+        binmark_filename_to_cb(argv[0], stdout, write_hex);
 
     } else if (mode == MODE_C) {
         uint8_t buffer[4096];
-        int len = hext_filename_to_buffer(argv[0], buffer, sizeof(buffer));
+        int len = binmark_filename_to_buffer(argv[0], buffer, sizeof(buffer));
         if (len >= 0) {
             print_c_block(stdout, buffer, len);
         }

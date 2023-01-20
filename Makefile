@@ -1,27 +1,28 @@
 PREFIX:=/usr/local
-PACKAGE=hext
-VERSION=0.1.0
+PACKAGE=binmark
+VERSION=0.2.0
 CFLAGS+=-std=c89 -Wall -pedantic -DVERSION=$(VERSION)
+DIST_FILES=$(shell git ls-files) $(EXTRA_DIST)
 
-all: hext
+all: binmark
 
-hext: hext.c hext.h
-	$(CC) $(CFLAGS) -DHEXT_TOOL -o hext hext.c
+binmark: binmark.c binmark.h
+	$(CC) $(CFLAGS) -DBINMARK_TOOL -o binmark binmark.c
 
-test: hext
+test: binmark
 	@./run-tests.sh
 
-install: hext
+install: binmark
 	install -d $(PREFIX)/bin
-	install -c hext $(PREFIX)/bin
+	install -c binmark $(PREFIX)/bin
 
 clean:
-	rm -f hext
+	rm -f binmark
 	rm -f tests/*.result
 
 dist:
 	distdir='$(PACKAGE)-$(VERSION)'; mkdir $$distdir || exit 1; \
-	list=`git ls-files`; for file in $$list; do \
+	for file in $(DIST_FILES); do \
 		cp -pR $$file $$distdir || exit 1; \
 	done; \
 	tar -zcf $$distdir.tar.gz $$distdir; \

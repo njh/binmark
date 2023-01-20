@@ -2,7 +2,7 @@
 #
 # Bash script to run all the test cases in the tests directory
 #
-# .hext   : the input file
+# .bm     : the input file
 # .expect : the expected output file (binary)
 # .result : the output of running the text locally
 #
@@ -11,7 +11,7 @@ totalcount=0
 failcount=0
 errorcount=0
 
-for filepath in tests/*.hext
+for filepath in tests/*.bm
 do
   filename=${filepath##*/}
   testname=${filename%.*}
@@ -20,7 +20,7 @@ do
 
   ((totalcount++))
   echo "Testing: $testname"
-  ./hext -x $filepath > $resultfile
+  ./binmark -x $filepath > $resultfile
   if [ $? -ne 0 ]; then
       echo " => Error"
       ((errorcount++))

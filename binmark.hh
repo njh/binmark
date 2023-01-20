@@ -1,22 +1,22 @@
 /*
 
-  C++ wrapper class to load a hext file into memory
+  C++ wrapper class to load a binmark file into memory
 
   Copyright 2016 Nicholas Humfrey
 
 */
 
-#ifndef HEXT_HH
-#define HEXT_HH
+#ifndef BINMARK_HH
+#define BINMARK_HH
 
 extern "C" {
-    #include "hext.h"
+    #include "binmark.h"
 }
 
-class HextFile {
+class BinmarkFile {
 public:
-    HextFile(const char* filename) {
-        length = hext_filename_to_buffer(filename, buffer, buffer_size);
+    BinmarkFile(const char* filename) {
+        length = binmark_filename_to_buffer(filename, buffer, buffer_size);
         if (length <= 0) {
             fprintf(stderr, "Error: failed to load file: %s\n", filename);
         }
