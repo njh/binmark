@@ -6,6 +6,8 @@ binmark
 _binmark_ is a markup language and tool for describing binary files, that is easier to
 read and write than a continuous stream of hexadecimal characters.
 
+This implementation is a C/C++ library and command line tool.
+
 
 The following characters are supported:
 
@@ -85,11 +87,17 @@ This was my thought process while designing _binmark_:
 * Not so complex that there wouldn't be other implementations in other languages
 
 
+Other Languages
+---------------
+
+* JavaScript: https://github.com/njh/binmark-js
+
+
 License
 -------
 
 `binmark` is licensed under the terms of the MIT license.
-See the file [LICENSE.md](/LICENSE.md) for details.
+See the file [LICENSE](/LICENSE.md) for details.
 
 
 Naming
