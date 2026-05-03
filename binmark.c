@@ -272,7 +272,7 @@ static void print_c_block(FILE *output, const uint8_t *buffer, int buffer_len)
     fprintf(output, "};\n");
 }
 
-static void usage()
+static void usage(void)
 {
     fprintf(stderr, "Usage: binmark [options] file...\n");
     fprintf(stderr, "Options\n");
