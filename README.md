@@ -1,7 +1,7 @@
 binmark
 =======
 
-[![Build Status](https://travis-ci.com/njh/binmark.svg?branch=master)](https://travis-ci.com/njh/binmark)
+[![CI](https://github.com/njh/binmark/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/njh/binmark/actions/workflows/ci.yml)
 
 _binmark_ is a markup language and tool for describing binary files, that is easier to
 read and write than a continuous stream of hexadecimal characters.
